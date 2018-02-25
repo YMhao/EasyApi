@@ -1,14 +1,23 @@
 package serv
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 
+	"github.com/YMhao/EasyApi/common"
+	"github.com/YMhao/EasyApi/generate/swagger"
+	"github.com/YMhao/EasyApi/web"
 	"github.com/gin-gonic/gin"
 )
 
 // RunAPIServ 启动服务
 func RunAPIServ(conf *APIServConf, apiColl APICollect) {
+	err := genSwagger(conf, apiColl)
+	if err != nil {
+		fmt.Println("Warn: ", err)
+	}
+
 	router := gin.Default()
 	allAPI := apiColl.AllAPI()
 	for _, apiList := range allAPI {
@@ -23,8 +32,33 @@ func RunAPIServ(conf *APIServConf, apiColl APICollect) {
 			})
 		}
 	}
-	setHTMLTemplate(router)
+	web.SetHTMLTemplate(router)
 	router.Run(conf.ListenAddr)
+}
+
+func genSwagger(conf *APIServConf, apiColl APICollect) (err error) {
+	defer func() {
+		if p := recover(); p != nil {
+			err = fmt.Errorf("internal error: %v", p)
+			return
+		}
+	}()
+
+	docList := genAPIDocList(conf, apiColl)
+	swagger := swagger.GenCode(&common.APIServConf{
+		Version:     conf.Version,
+		BuildTime:   conf.BuildTime,
+		ServiceName: conf.ServiceName,
+		Description: conf.Description,
+		ListenAddr:  conf.ListenAddr,
+		DebugPage:   conf.DebugPage,
+	}, docList)
+	data, err := swagger.MarshalJSON()
+	if err != nil {
+		return nil
+	}
+	fmt.Println(string(data))
+	return nil
 }
 
 func getPath(conf *APIServConf, apiID string) string {
@@ -53,7 +87,7 @@ func runAPICall(api API, c *gin.Context) {
 }
 
 func handleError(c *gin.Context, apiErr *APIError) {
-	c.Writer.Header().Set("content-type", "application/json") //返回数据格式是json
+	c.Writer.Header().Set("content-type", "application/json")
 	c.JSON(200, &CallResponse{
 		HasError: true,
 		Error:    apiErr,
@@ -61,7 +95,7 @@ func handleError(c *gin.Context, apiErr *APIError) {
 }
 
 func handleResponse(c *gin.Context, response interface{}) {
-	c.Writer.Header().Set("content-type", "application/json") //返回数据格式是json
+	c.Writer.Header().Set("content-type", "application/json")
 	c.JSON(200, &CallResponse{
 		Data: response,
 	})
@@ -70,9 +104,9 @@ func handleResponse(c *gin.Context, response interface{}) {
 func runOpthionCall(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 	c.Writer.Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Origin,Access-Control-Allow-Method,Content-Type")
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
-	c.Writer.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
-	c.Writer.Header().Set("content-type", "application/json")             //返回数据格式是json
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	c.Writer.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+	c.Writer.Header().Set("content-type", "application/json")
 
 	c.JSON(200, gin.H{})
 }

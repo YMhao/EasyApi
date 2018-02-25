@@ -1,4 +1,4 @@
-package serv
+package web
 
 import (
 	"html/template"
@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// setHTMLTemplate 设置网页模板
-func setHTMLTemplate(router *gin.Engine) {
+// SetHTMLTemplate 设置网页模板
+func SetHTMLTemplate(router *gin.Engine) {
 	templ := template.New("")
 	// to do
 	router.SetHTMLTemplate(templ)
