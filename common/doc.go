@@ -1,15 +1,11 @@
 package common
 
-import (
-	"reflect"
-)
-
-type SwaggerApiType string
+type SwaggerAPIType string
 
 const (
-	SwaggerApiTypeJson     SwaggerApiType = "json"
-	SwaggerApiTypeDownload SwaggerApiType = "download"
-	SwaggerApiTypeUpload   SwaggerApiType = "upload"
+	SwaggerAPITypeJson     SwaggerAPIType = "json"
+	SwaggerAPITypeDownload SwaggerAPIType = "download"
+	SwaggerAPITypeUpload   SwaggerAPIType = "upload"
 )
 
 type Parminfo struct {
@@ -18,31 +14,24 @@ type Parminfo struct {
 	IsArray bool
 }
 
+type ObjInfo struct {
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Fields      map[string]*Attr `json:"fields"`
+	DepObjList  []DepObjDoc      `json:"depObjList"`
+}
+
 type ApiDoc struct {
 	ApiId   string `json:"apiId"`
 	ApiDesc string `json:"apiDesc"`
 	Tag     string `json:"-"`
 	Path    string `json:"-"`
 
-	RequestDesc       string           `json:"requestDesc"`
-	RequestObj        map[string]*Attr `json:"requestObj"`
-	RequestDepObjList []DepObjDoc      `json:"requestDepObjList"`
+	Request  ObjInfo `json:"request"`
+	Response ObjInfo `json:"response"`
 
-	ResponseDesc       string           `json:"responseDesc"`
-	ResponseObj        map[string]*Attr `json:"responseObj"`
-	ResponseDepObjList []DepObjDoc      `json:"responseDepObjList"`
-
-	SwaggerApiType   SwaggerApiType `json:"-"`
+	SwaggerAPIType   SwaggerAPIType `json:"-"`
 	Mime             []string       `json:"-"`
 	QueryParmList    []Parminfo     `json:"query"`
 	FormDataParmList []Parminfo     `json:"formdata"`
-}
-
-func (a *ApiDoc) ResponseName() string {
-	return ""
-}
-
-func (a *ApiDoc) RequestName() string {
-	t := reflect.TypeOf(a.RequestObj)
-	return t.Name()
 }

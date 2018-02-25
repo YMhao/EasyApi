@@ -1,6 +1,7 @@
 package swagger
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/YMhao/EasyApi/common"
@@ -51,21 +52,21 @@ func GenSchema(apiDoc *common.ApiDoc, schemaMap map[string]spec.Schema) {
 			},
 		}
 
-		for k, v := range apiDoc.RequestObj {
+		for k, v := range apiDoc.Request.Fields {
 			schema.SchemaProps.Properties[k] = *itemToSchame(v)
 		}
-		schemaMap[apiDoc.ApiId+"Req"] = *schema
+		schemaMap[apiDoc.Request.Name] = *schema
 
-		for _, doc := range apiDoc.RequestDepObjList {
+		for _, doc := range apiDoc.Request.DepObjList {
 			schema = &spec.Schema{
 				SchemaProps: spec.SchemaProps{
 					Properties: make(map[string]spec.Schema),
 				},
 			}
-			for k, v := range doc.ObjectBody {
+			for k, v := range doc.Fields {
 				schema.SchemaProps.Properties[k] = *itemToSchame(v)
 			}
-			objName := AvoidRepeatMap.GetTypeName(doc.PkgPath, doc.ObjectName)
+			objName := AvoidRepeatMap.GetTypeName(doc.PkgPath, doc.Name)
 			schemaMap[objName] = *schema
 		}
 	}
@@ -100,31 +101,31 @@ func GenSchema(apiDoc *common.ApiDoc, schemaMap map[string]spec.Schema) {
 			},
 		}
 
-		for k, v := range apiDoc.ResponseObj {
+		for k, v := range apiDoc.Response.Fields {
 			schema.SchemaProps.Properties["Data"].SchemaProps.Properties[k] = *itemToSchame(v)
 		}
-		schemaMap[apiDoc.ResponseName()] = *schema
+		schemaMap[apiDoc.Response.Name] = *schema
 
-		for _, doc := range apiDoc.ResponseDepObjList {
+		for _, doc := range apiDoc.Response.DepObjList {
 			schema = &spec.Schema{
 				SchemaProps: spec.SchemaProps{
 					Properties: make(map[string]spec.Schema),
 				},
 			}
-			for k, v := range doc.ObjectBody {
+			for k, v := range doc.Fields {
 				schema.SchemaProps.Properties[k] = *itemToSchame(v)
 			}
-			objName := AvoidRepeatMap.GetTypeName(doc.PkgPath, doc.ObjectName)
+			objName := AvoidRepeatMap.GetTypeName(doc.PkgPath, doc.Name)
 			schemaMap[objName] = *schema
 		}
 	}
 
-	switch apiDoc.SwaggerApiType {
-	case common.SwaggerApiTypeDownload:
-	case common.SwaggerApiTypeJson:
+	switch apiDoc.SwaggerAPIType {
+	case common.SwaggerAPITypeDownload:
+	case common.SwaggerAPITypeJson:
 		setReqSchema()
 		setRspSchema()
-	case common.SwaggerApiTypeUpload:
+	case common.SwaggerAPITypeUpload:
 		setRspSchema()
 	default:
 		return
@@ -138,7 +139,7 @@ func GenRspSchema(apiDoc *common.ApiDoc) *spec.Schema {
 		},
 	}
 
-	for k, v := range apiDoc.ResponseObj {
+	for k, v := range apiDoc.Response.Fields {
 		schema.SchemaProps.Properties[k] = *itemToSchame(v)
 	}
 	return schema
@@ -156,19 +157,19 @@ func GenPaths(apiDocList []*common.ApiDoc) *spec.Paths {
 
 func GenPathItem(apiDoc *common.ApiDoc) *spec.PathItem {
 	statusCodeResponses := GetStatusCodeResponses(apiDoc)
-	if apiDoc.SwaggerApiType == common.SwaggerApiTypeJson {
+	if apiDoc.SwaggerAPIType == common.SwaggerAPITypeJson {
 		return &spec.PathItem{
 			PathItemProps: spec.PathItemProps{
 				Parameters: func() []spec.Parameter {
 					Parameters := []spec.Parameter{}
 					Parameters = append(Parameters, *NewSwaggerQueryParamter("版本号", "v", true))
-					Parameters = append(Parameters, *NewSwaggerSchemaRefParamter(GetApiId(apiDoc.ApiId)+"Req", true))
+					Parameters = append(Parameters, *NewSwaggerSchemaRefParamter(GetApiId(apiDoc.Request.Name), true))
 					return Parameters
 				}(),
-				Post: NewPostJsonOperation(apiDoc.ResponseDesc, apiDoc.Tag, statusCodeResponses),
+				Post: NewPostJsonOperation(apiDoc.Response.Description, apiDoc.Tag, statusCodeResponses),
 			},
 		}
-	} else if apiDoc.SwaggerApiType == common.SwaggerApiTypeDownload {
+	} else if apiDoc.SwaggerAPIType == common.SwaggerAPITypeDownload {
 		return &spec.PathItem{
 			PathItemProps: spec.PathItemProps{
 				Parameters: func() []spec.Parameter {
@@ -177,10 +178,10 @@ func GenPathItem(apiDoc *common.ApiDoc) *spec.PathItem {
 					Parameters = append(Parameters, *NewSwaggerQueryParamter("文件id", "fileId", true))
 					return Parameters
 				}(),
-				Get: NewGetFileOperation(apiDoc.ResponseDesc, apiDoc.Tag, statusCodeResponses, apiDoc.Mime),
+				Get: NewGetFileOperation(apiDoc.Response.Description, apiDoc.Tag, statusCodeResponses, apiDoc.Mime),
 			},
 		}
-	} else if apiDoc.SwaggerApiType == common.SwaggerApiTypeUpload {
+	} else if apiDoc.SwaggerAPIType == common.SwaggerAPITypeUpload {
 		return &spec.PathItem{
 			PathItemProps: spec.PathItemProps{
 				Parameters: func() []spec.Parameter {
@@ -189,7 +190,7 @@ func GenPathItem(apiDoc *common.ApiDoc) *spec.PathItem {
 					Parameters = append(Parameters, *NewSwaggerQueryParamter("会话id", "sessionId", false))
 					return Parameters
 				}(),
-				Post: NewPostFileOperation(apiDoc.ResponseDesc, apiDoc.Tag, statusCodeResponses),
+				Post: NewPostFileOperation(apiDoc.Response.Description, apiDoc.Tag, statusCodeResponses),
 			},
 		}
 	}
@@ -199,38 +200,39 @@ func GenPathItem(apiDoc *common.ApiDoc) *spec.PathItem {
 			Parameters: func() []spec.Parameter {
 				Parameters := []spec.Parameter{}
 				Parameters = append(Parameters, *NewSwaggerQueryParamter("版本号", "v", true))
-				Parameters = append(Parameters, *NewSwaggerSchemaRefParamter(GetApiId(apiDoc.ApiId)+"Req", true))
+				Parameters = append(Parameters, *NewSwaggerSchemaRefParamter(GetApiId(apiDoc.Request.Name), true))
 				return Parameters
 			}(),
-			Post: NewPostJsonOperation(apiDoc.ResponseDesc, apiDoc.Tag, statusCodeResponses),
+			Post: NewPostJsonOperation(apiDoc.Response.Description, apiDoc.Tag, statusCodeResponses),
 		},
 	}
 
-	panic("invalid api.SwaggerApiType: " + apiDoc.SwaggerApiType)
+	panic("invalid api.SwaggerAPIType: " + apiDoc.SwaggerAPIType)
 }
 
 func GetApiId(id string) string {
+	fmt.Println("id:", id)
 	return strings.Replace(id, ".", "", -1)
 }
 
 func GetStatusCodeResponses(apiDoc *common.ApiDoc) map[int]spec.Response {
-	if apiDoc.ResponseDesc == "" {
-		apiDoc.ResponseDesc = "没有写描述"
+	if apiDoc.Response.Description == "" {
+		apiDoc.Response.Description = "没有写描述"
 	}
 
-	switch apiDoc.SwaggerApiType {
-	case common.SwaggerApiTypeJson:
+	switch apiDoc.SwaggerAPIType {
+	case common.SwaggerAPITypeJson:
 		return map[int]spec.Response{
 			200: spec.Response{ResponseProps: spec.ResponseProps{
-				Description: apiDoc.ResponseDesc,
+				Description: apiDoc.Response.Description,
 				Schema: &spec.Schema{
 					SchemaProps: spec.SchemaProps{
-						Ref: spec.MustCreateRef("#/definitions/" + GetApiId(apiDoc.ApiId) + "Rsp"),
+						Ref: spec.MustCreateRef("#/definitions/" + GetApiId(apiDoc.Response.Name)),
 					},
 				},
 			}},
 		}
-	case common.SwaggerApiTypeDownload:
+	case common.SwaggerAPITypeDownload:
 		return map[int]spec.Response{
 			200: spec.Response{ResponseProps: spec.ResponseProps{
 				Description: "文件",
@@ -243,18 +245,18 @@ func GetStatusCodeResponses(apiDoc *common.ApiDoc) map[int]spec.Response {
 				},
 			}},
 		}
-	case common.SwaggerApiTypeUpload:
+	case common.SwaggerAPITypeUpload:
 		return map[int]spec.Response{
 			200: spec.Response{ResponseProps: spec.ResponseProps{
-				Description: apiDoc.ResponseDesc,
+				Description: apiDoc.Response.Description,
 				Schema: &spec.Schema{
 					SchemaProps: spec.SchemaProps{
-						Ref: spec.MustCreateRef("#/definitions/" + GetApiId(apiDoc.ApiId) + "Rsp"),
+						Ref: spec.MustCreateRef("#/definitions/" + GetApiId(apiDoc.Response.Name)),
 					},
 				},
 			}},
 		}
 	default:
-		panic("invalid type")
+		panic("invalid type " + apiDoc.SwaggerAPIType)
 	}
 }

@@ -245,9 +245,9 @@ func (o *ObjDoc) getArrayExtraAttr(t reflect.Type) *ArrayExtraAttr {
 
 // DepObjDoc 依赖的object文档
 type DepObjDoc struct {
-	ObjectName string           `json:"depObj"`
-	ObjectBody map[string]*Attr `json:"objDoc"`
-	PkgPath    string           `json:"-"`
+	Name    string           `json:"name"`
+	Fields  map[string]*Attr `json:"fields"`
+	PkgPath string           `json:"-"`
 }
 
 // ListDepObjDoc 列出依赖的object文档
@@ -276,9 +276,9 @@ func (o *ObjDoc) ListDepObjDoc() []DepObjDoc {
 					o.fieldDoc(attrMap, t.Field(j))
 				}
 				retList = append(retList, DepObjDoc{
-					ObjectName: t.Name(),
-					ObjectBody: attrMap,
-					PkgPath:    t.PkgPath(),
+					Name:    t.Name(),
+					Fields:  attrMap,
+					PkgPath: t.PkgPath(),
 				})
 			}
 		}
