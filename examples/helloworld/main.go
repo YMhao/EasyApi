@@ -17,6 +17,10 @@ type HelloResponse struct {
 }
 
 // HelloAPI is a hello api
+// type API interface {
+// 	Doc() *APIDoc
+// 	Call(reqData []byte) (interface{}, *APIError)
+// }
 type HelloAPI struct {
 }
 
@@ -25,17 +29,12 @@ func (h HelloAPI) Doc() *serv.APIDoc {
 	return &serv.APIDoc{
 		ID:               "hello",
 		Descript:         "helloworld service",
-		RequestDescript:  "包含用户名的信息",
+		RequestDescript:  "该请求包含用户名信息",
 		Request:          &HelloRequest{},
-		ResponseDescript: "包含问候信息",
+		ResponseDescript: "该响应包含问候信息",
 		Response:         &HelloResponse{},
 	}
 }
-
-// type API interface {
-// 	Doc() *APIDoc
-// 	Call(reqData []byte) (interface{}, *APIError)
-// }
 
 // Call 回调
 func (h HelloAPI) Call(reqData []byte) (interface{}, *serv.APIError) {
@@ -47,6 +46,7 @@ func (h HelloAPI) Call(reqData []byte) (interface{}, *serv.APIError) {
 			Descript: err.Error(),
 		}
 	}
+
 	return &HelloResponse{
 		Message: "hello " + req.Name + "!",
 	}, nil
