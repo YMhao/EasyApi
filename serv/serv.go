@@ -13,11 +13,6 @@ import (
 
 // RunAPIServ 启动服务
 func RunAPIServ(conf *APIServConf, apiColl APICollect) {
-	err := genSwagger(conf, apiColl)
-	if err != nil {
-		fmt.Println("Warn: ", err)
-	}
-
 	router := gin.Default()
 	allAPI := apiColl.AllAPI()
 	for _, apiList := range allAPI {
@@ -32,11 +27,27 @@ func RunAPIServ(conf *APIServConf, apiColl APICollect) {
 			})
 		}
 	}
-	web.SetHTMLTemplate(router)
+	initHTML(conf, apiColl, router)
 	router.Run(conf.ListenAddr)
 }
 
-func genSwagger(conf *APIServConf, apiColl APICollect) (err error) {
+func initHTML(conf *APIServConf, apiColl APICollect, router *gin.Engine) {
+	json, err := genSwagger(conf, apiColl)
+	if err != nil {
+		fmt.Println("Warn: ", err)
+	}
+	index := web.IndexInfo{
+		Name:        conf.ServiceName,
+		Description: conf.Description,
+		SwaggerJSON: json,
+	}
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(200, "Index", index.HtmlIndexInfo())
+	})
+	web.SetHTMLTemplate(router)
+}
+
+func genSwagger(conf *APIServConf, apiColl APICollect) (swagerJSON string, err error) {
 	defer func() {
 		if p := recover(); p != nil {
 			err = fmt.Errorf("internal error: %v", p)
@@ -55,10 +66,9 @@ func genSwagger(conf *APIServConf, apiColl APICollect) (err error) {
 	}, docList)
 	data, err := swagger.MarshalJSON()
 	if err != nil {
-		return nil
+		return "", nil
 	}
-	fmt.Println(string(data))
-	return nil
+	return string(data), nil
 }
 
 func getPath(conf *APIServConf, apiID string) string {

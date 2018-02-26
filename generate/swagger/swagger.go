@@ -53,6 +53,7 @@ func (s *Swagger) SetDefinitions(definitions map[string]spec.Schema) {
 }
 
 func (s *Swagger) MarshalJSON() ([]byte, error) {
+	return json.MarshalIndent(s.Swagger, "", "    ")
 	return s.Swagger.MarshalJSON()
 }
 
