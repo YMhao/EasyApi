@@ -101,12 +101,10 @@ func itemToSchame(item *common.Attr) *spec.Schema {
 		}
 		if attr.HasMax {
 			max := float64(attr.Max)
-			fmt.Println("max:", max)
 			intPro.Maximum = &max
 		}
 		if attr.HasMin {
 			min := float64(attr.Min)
-			fmt.Println("min:", min)
 			intPro.Minimum = &min
 		}
 		return intPro

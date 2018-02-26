@@ -12,7 +12,7 @@ func GenCode(conf *common.APIServConf, apiDocList []*common.ApiDoc) *Swagger {
 	swagger.Init()
 
 	swagger.SetHost(GetUrl(conf.ListenAddr))
-	swagger.SetBasePath("/")
+	swagger.SetBasePath("/" + conf.ServiceName + "/" + conf.Version)
 
 	info := GenInfo(conf.Version, conf.ServiceName, conf.Description)
 	swagger.SetInfo(info)
@@ -43,93 +43,67 @@ func GenDefinitions(apiDocList []*common.ApiDoc) map[string]spec.Schema {
 	return defs
 }
 
-func GenSchema(apiDoc *common.ApiDoc, schemaMap map[string]spec.Schema) {
-	setReqSchema := func() {
-		schema := &spec.Schema{
+func setReqSchema(apiDoc *common.ApiDoc, schemaMap map[string]spec.Schema) {
+	schema := &spec.Schema{
+		SchemaProps: spec.SchemaProps{
+			Properties: make(map[string]spec.Schema),
+		},
+	}
+
+	for k, v := range apiDoc.Request.Fields {
+		schema.SchemaProps.Properties[k] = *itemToSchame(v)
+	}
+	objName := AvoidRepeatMap.GetTypeName(apiDoc.Request.PkgPath, apiDoc.Request.Name)
+	schemaMap[objName] = *schema
+
+	for _, doc := range apiDoc.Request.DepObjList {
+		schema = &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: make(map[string]spec.Schema),
 			},
 		}
-
-		for k, v := range apiDoc.Request.Fields {
+		for k, v := range doc.Fields {
 			schema.SchemaProps.Properties[k] = *itemToSchame(v)
 		}
-		schemaMap[apiDoc.Request.Name] = *schema
-
-		for _, doc := range apiDoc.Request.DepObjList {
-			schema = &spec.Schema{
-				SchemaProps: spec.SchemaProps{
-					Properties: make(map[string]spec.Schema),
-				},
-			}
-			for k, v := range doc.Fields {
-				schema.SchemaProps.Properties[k] = *itemToSchame(v)
-			}
-			objName := AvoidRepeatMap.GetTypeName(doc.PkgPath, doc.Name)
-			schemaMap[objName] = *schema
-		}
+		objName := AvoidRepeatMap.GetTypeName(doc.PkgPath, doc.Name)
+		schemaMap[objName] = *schema
 	}
+}
 
-	setRspSchema := func() {
-		schema := &spec.Schema{
+func setRspSchema(apiDoc *common.ApiDoc, schemaMap map[string]spec.Schema) {
+	schema := &spec.Schema{
+		SchemaProps: spec.SchemaProps{
+			Properties: make(map[string]spec.Schema),
+		},
+	}
+	for k, v := range apiDoc.Response.Fields {
+		schema.SchemaProps.Properties[k] = *itemToSchame(v)
+	}
+	objName := AvoidRepeatMap.GetTypeName(apiDoc.Response.PkgPath, apiDoc.Response.Name)
+	schemaMap[objName] = *schema
+
+	for _, doc := range apiDoc.Response.DepObjList {
+		schema = &spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Properties: map[string]spec.Schema{
-					"hasError": spec.Schema{
-						SchemaProps: spec.SchemaProps{
-							Type: spec.StringOrArray{
-								"boolean",
-							},
-						},
-					},
-					"error": spec.Schema{
-						SchemaProps: spec.SchemaProps{
-							Type: spec.StringOrArray{
-								"object",
-							},
-							Properties: make(map[string]spec.Schema),
-						},
-					},
-					"data": spec.Schema{
-						SchemaProps: spec.SchemaProps{
-							Type: spec.StringOrArray{
-								"object",
-							},
-							Properties: make(map[string]spec.Schema),
-						},
-					},
-				},
+				Properties: make(map[string]spec.Schema),
 			},
 		}
-
-		schema.SchemaProps.Properties["error"].SchemaProps.Properties["code"] = *spec.StringProperty()
-		schema.SchemaProps.Properties["error"].SchemaProps.Properties["description"] = *spec.StringProperty()
-
-		for k, v := range apiDoc.Response.Fields {
-			schema.SchemaProps.Properties["data"].SchemaProps.Properties[k] = *itemToSchame(v)
+		for k, v := range doc.Fields {
+			schema.SchemaProps.Properties[k] = *itemToSchame(v)
 		}
-		schemaMap[apiDoc.Response.Name] = *schema
-
-		for _, doc := range apiDoc.Response.DepObjList {
-			schema = &spec.Schema{
-				SchemaProps: spec.SchemaProps{
-					Properties: make(map[string]spec.Schema),
-				},
-			}
-			for k, v := range doc.Fields {
-				schema.SchemaProps.Properties[k] = *itemToSchame(v)
-			}
-			objName := AvoidRepeatMap.GetTypeName(doc.PkgPath, doc.Name)
-			schemaMap[objName] = *schema
-		}
+		objName := AvoidRepeatMap.GetTypeName(doc.PkgPath, doc.Name)
+		schemaMap[objName] = *schema
 	}
+}
 
+func GenSchema(apiDoc *common.ApiDoc, schemaMap map[string]spec.Schema) {
 	switch apiDoc.SwaggerAPIType {
 	case common.SwaggerAPITypeDownload:
 	case common.SwaggerAPITypeJson:
-		setReqSchema()
-		setRspSchema()
+		setReqSchema(apiDoc, schemaMap)
+		setRspSchema(apiDoc, schemaMap)
 	case common.SwaggerAPITypeUpload:
-		setRspSchema()
+		setRspSchema(apiDoc, schemaMap)
 	default:
 		return
 	}
@@ -213,17 +187,46 @@ func GetApiId(id string) string {
 	return strings.Replace(id, ".", "", -1)
 }
 
+func getStdRespSchema(apiDoc *common.ApiDoc) *spec.Schema {
+	objName := AvoidRepeatMap.GetTypeName(apiDoc.Response.PkgPath, apiDoc.Response.Name)
+	schema := &spec.Schema{
+		SchemaProps: spec.SchemaProps{
+			Properties: map[string]spec.Schema{
+				"hasError": spec.Schema{
+					SchemaProps: spec.SchemaProps{
+						Type: spec.StringOrArray{
+							"boolean",
+						},
+					},
+				},
+				"error": spec.Schema{
+					SchemaProps: spec.SchemaProps{
+						Type: spec.StringOrArray{
+							"object",
+						},
+						Properties: make(map[string]spec.Schema),
+					},
+				},
+				"data": spec.Schema{
+					SchemaProps: spec.SchemaProps{
+						Ref: spec.MustCreateRef("#/definitions/" + objName),
+					},
+				},
+			},
+		},
+	}
+	schema.SchemaProps.Properties["error"].SchemaProps.Properties["code"] = *spec.StringProperty()
+	schema.SchemaProps.Properties["error"].SchemaProps.Properties["description"] = *spec.StringProperty()
+	return schema
+}
+
 func GetStatusCodeResponses(apiDoc *common.ApiDoc) map[int]spec.Response {
 	switch apiDoc.SwaggerAPIType {
 	case common.SwaggerAPITypeJson:
 		return map[int]spec.Response{
 			200: spec.Response{ResponseProps: spec.ResponseProps{
 				Description: apiDoc.Response.Description,
-				Schema: &spec.Schema{
-					SchemaProps: spec.SchemaProps{
-						Ref: spec.MustCreateRef("#/definitions/" + GetApiId(apiDoc.Response.Name)),
-					},
-				},
+				Schema:      getStdRespSchema(apiDoc),
 			}},
 		}
 	case common.SwaggerAPITypeDownload:
@@ -245,7 +248,7 @@ func GetStatusCodeResponses(apiDoc *common.ApiDoc) map[int]spec.Response {
 				Description: apiDoc.Response.Description,
 				Schema: &spec.Schema{
 					SchemaProps: spec.SchemaProps{
-						Ref: spec.MustCreateRef("#/definitions/" + GetApiId(apiDoc.Response.Name)),
+						Ref: spec.MustCreateRef("#/definitions/" + apiDoc.ApiId + "Resp"),
 					},
 				},
 			}},

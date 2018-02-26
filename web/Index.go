@@ -20,7 +20,6 @@ type HtmlIndexInfo struct {
 
 func (i *IndexInfo) HtmlIndexInfo() *HtmlIndexInfo {
 	html := fmt.Sprintf(`
-		<span>Swagger Json</span>
 		<div class="panel-body">
 			<pre class="code json"">%s</pre>
 		</div>
@@ -62,9 +61,16 @@ const IndexPage = `
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <h3 class="panel-title">{{.Name}}</h3>
-            </div>
+			</div>
 			<div class="panel-body">
-                {{.SwaggerJSON}}
+				<span class="label label-success">服务描述</span>
+				<h5>{{.Description}}</h5>
+				<hr>
+				<span class="label label-success">swagger Edit</span>
+				<h5><a href="https://editor.swagger.io">https://editor.swagger.io<h5>
+				<hr>
+				<span class="label label-success">Swagger协议文档:</span>
+				{{.SwaggerJSON}}
             </div>
         </div>
     </div>

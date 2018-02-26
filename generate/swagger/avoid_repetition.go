@@ -21,7 +21,7 @@ func (a *_AvoidReMap) GetTypeName(pkgPath string, typeName string) string {
 	a.Lock.Lock()
 	defer a.Lock.Unlock()
 
-	key := pkgPath + typeName
+	key := pkgPath + "@" + typeName
 
 	name, ok := a.Map[key]
 	if ok {

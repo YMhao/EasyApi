@@ -13,6 +13,13 @@ func getObjName(obj interface{}) string {
 	}
 	return t.Name()
 }
+func getObjPkgPath(obj interface{}) string {
+	t := reflect.TypeOf(obj)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.PkgPath()
+}
 
 func genAPIDocList(conf *APIServConf, apiColl APICollect) []*common.ApiDoc {
 	m := []*common.ApiDoc{}
@@ -24,7 +31,7 @@ func genAPIDocList(conf *APIServConf, apiColl APICollect) []*common.ApiDoc {
 				ApiId:   doc.ID,
 				ApiDesc: doc.Descript,
 				Tag:     string(cateName),
-				Path:    "/" + conf.ServiceName + "/" + conf.Version + "/" + doc.ID,
+				Path:    "/" + doc.ID,
 				Request: common.ObjInfo{
 					Name: getObjName(doc.Request),
 					Description: func(desc string) string {
@@ -35,6 +42,7 @@ func genAPIDocList(conf *APIServConf, apiColl APICollect) []*common.ApiDoc {
 					}(doc.RequestDescript),
 					Fields:     common.NewObjDoc(doc.Request).FieldAttrMap(),
 					DepObjList: common.NewObjDoc(doc.Request).ListDepObjDoc(),
+					PkgPath:    getObjPkgPath(doc.Request),
 				},
 				Response: common.ObjInfo{
 					Name: getObjName(doc.Response),
@@ -46,6 +54,7 @@ func genAPIDocList(conf *APIServConf, apiColl APICollect) []*common.ApiDoc {
 					}(doc.ResponseDescript),
 					Fields:     common.NewObjDoc(doc.Response).FieldAttrMap(),
 					DepObjList: common.NewObjDoc(doc.Response).ListDepObjDoc(),
+					PkgPath:    getObjPkgPath(doc.Response),
 				},
 				SwaggerAPIType: common.SwaggerAPITypeJson,
 			}
