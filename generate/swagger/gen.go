@@ -1,7 +1,6 @@
 package swagger
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/YMhao/EasyApi/common"
@@ -75,21 +74,22 @@ func GenSchema(apiDoc *common.ApiDoc, schemaMap map[string]spec.Schema) {
 		schema := &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: map[string]spec.Schema{
-					"HasError": spec.Schema{
+					"hasError": spec.Schema{
 						SchemaProps: spec.SchemaProps{
 							Type: spec.StringOrArray{
 								"boolean",
 							},
 						},
 					},
-					"ErrorDesc": spec.Schema{
+					"error": spec.Schema{
 						SchemaProps: spec.SchemaProps{
 							Type: spec.StringOrArray{
-								"string",
+								"object",
 							},
+							Properties: make(map[string]spec.Schema),
 						},
 					},
-					"Data": spec.Schema{
+					"data": spec.Schema{
 						SchemaProps: spec.SchemaProps{
 							Type: spec.StringOrArray{
 								"object",
@@ -101,8 +101,11 @@ func GenSchema(apiDoc *common.ApiDoc, schemaMap map[string]spec.Schema) {
 			},
 		}
 
+		schema.SchemaProps.Properties["error"].SchemaProps.Properties["code"] = *spec.StringProperty()
+		schema.SchemaProps.Properties["error"].SchemaProps.Properties["description"] = *spec.StringProperty()
+
 		for k, v := range apiDoc.Response.Fields {
-			schema.SchemaProps.Properties["Data"].SchemaProps.Properties[k] = *itemToSchame(v)
+			schema.SchemaProps.Properties["data"].SchemaProps.Properties[k] = *itemToSchame(v)
 		}
 		schemaMap[apiDoc.Response.Name] = *schema
 
@@ -162,11 +165,10 @@ func GenPathItem(apiDoc *common.ApiDoc) *spec.PathItem {
 			PathItemProps: spec.PathItemProps{
 				Parameters: func() []spec.Parameter {
 					Parameters := []spec.Parameter{}
-					Parameters = append(Parameters, *NewSwaggerQueryParamter("版本号", "v", true))
-					Parameters = append(Parameters, *NewSwaggerSchemaRefParamter(GetApiId(apiDoc.Request.Name), true))
+					Parameters = append(Parameters, *NewSwaggerSchemaRefParamter(GetApiId(apiDoc.Request.Name), apiDoc.Request.Description, true))
 					return Parameters
 				}(),
-				Post: NewPostJsonOperation(apiDoc.Response.Description, apiDoc.Tag, statusCodeResponses),
+				Post: NewPostJsonOperation(apiDoc.ApiDesc, apiDoc.Tag, statusCodeResponses),
 			},
 		}
 	} else if apiDoc.SwaggerAPIType == common.SwaggerAPITypeDownload {
@@ -174,7 +176,6 @@ func GenPathItem(apiDoc *common.ApiDoc) *spec.PathItem {
 			PathItemProps: spec.PathItemProps{
 				Parameters: func() []spec.Parameter {
 					Parameters := []spec.Parameter{}
-					Parameters = append(Parameters, *NewSwaggerQueryParamter("版本号", "v", true))
 					Parameters = append(Parameters, *NewSwaggerQueryParamter("文件id", "fileId", true))
 					return Parameters
 				}(),
@@ -186,7 +187,6 @@ func GenPathItem(apiDoc *common.ApiDoc) *spec.PathItem {
 			PathItemProps: spec.PathItemProps{
 				Parameters: func() []spec.Parameter {
 					Parameters := []spec.Parameter{}
-					Parameters = append(Parameters, *NewSwaggerQueryParamter("版本号", "v", true))
 					Parameters = append(Parameters, *NewSwaggerQueryParamter("会话id", "sessionId", false))
 					return Parameters
 				}(),
@@ -199,11 +199,10 @@ func GenPathItem(apiDoc *common.ApiDoc) *spec.PathItem {
 		PathItemProps: spec.PathItemProps{
 			Parameters: func() []spec.Parameter {
 				Parameters := []spec.Parameter{}
-				Parameters = append(Parameters, *NewSwaggerQueryParamter("版本号", "v", true))
-				Parameters = append(Parameters, *NewSwaggerSchemaRefParamter(GetApiId(apiDoc.Request.Name), true))
+				Parameters = append(Parameters, *NewSwaggerSchemaRefParamter(GetApiId(apiDoc.Request.Name), apiDoc.Request.Description, true))
 				return Parameters
 			}(),
-			Post: NewPostJsonOperation(apiDoc.Response.Description, apiDoc.Tag, statusCodeResponses),
+			Post: NewPostJsonOperation(apiDoc.ApiDesc, apiDoc.Tag, statusCodeResponses),
 		},
 	}
 
@@ -211,15 +210,10 @@ func GenPathItem(apiDoc *common.ApiDoc) *spec.PathItem {
 }
 
 func GetApiId(id string) string {
-	fmt.Println("id:", id)
 	return strings.Replace(id, ".", "", -1)
 }
 
 func GetStatusCodeResponses(apiDoc *common.ApiDoc) map[int]spec.Response {
-	if apiDoc.Response.Description == "" {
-		apiDoc.Response.Description = "没有写描述"
-	}
-
 	switch apiDoc.SwaggerAPIType {
 	case common.SwaggerAPITypeJson:
 		return map[int]spec.Response{

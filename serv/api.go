@@ -58,8 +58,8 @@ type APIDoc struct {
 // 2、希望Code能用一个简短的字符串来代表一个code，直接看code就可以知道大概时一个什么错误。
 // 3、虽然希望时可以用一个简短字符串，但是不强求，因为数字也是一个字符串。
 type APIError struct {
-	Code     string `desc:"错误码"`
-	Descript string `desc:"错误的描述"`
+	Code     string `json:"code" desc:"错误码"`
+	Descript string `json:"description" desc:"错误的描述"`
 }
 
 // API 是个 接口

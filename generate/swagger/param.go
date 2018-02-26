@@ -32,9 +32,9 @@ func NewSwaggerFileParamter(description, name string, required bool) *spec.Param
 }
 
 // schema
-func NewSwaggerSchemaParamter(obj interface{}, required bool) *spec.Parameter {
+func NewSwaggerSchemaParamter(obj interface{}, description string, required bool) *spec.Parameter {
 	return &spec.Parameter{
-		ParamProps: spec.ParamProps{Description: "请求参数", Name: "body", In: "body", Required: required, Schema: &spec.Schema{
+		ParamProps: spec.ParamProps{Description: description, Name: "body", In: "body", Required: required, Schema: &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Ref: spec.MustCreateRef("#/definitions/demoRsp"),
 			},
@@ -43,9 +43,9 @@ func NewSwaggerSchemaParamter(obj interface{}, required bool) *spec.Parameter {
 }
 
 // schema
-func NewSwaggerSchemaRefParamter(name string, required bool) *spec.Parameter {
+func NewSwaggerSchemaRefParamter(name string, description string, required bool) *spec.Parameter {
 	return &spec.Parameter{
-		ParamProps: spec.ParamProps{Description: "请求参数", Name: "body", In: "body", Required: required, Schema: &spec.Schema{
+		ParamProps: spec.ParamProps{Description: description, Name: "body", In: "body", Required: required, Schema: &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Ref: spec.MustCreateRef("#/definitions/" + name),
 			},

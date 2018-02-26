@@ -1,7 +1,6 @@
 package serv
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/YMhao/EasyApi/common"
@@ -21,24 +20,32 @@ func genAPIDocList(conf *APIServConf, apiColl APICollect) []*common.ApiDoc {
 	for cateName, apiList := range allAPI {
 		for _, api := range apiList {
 			doc := api.Doc()
-
-			fmt.Println("id:", reflect.TypeOf(doc.Request).Elem().Name())
 			apiDoc := &common.ApiDoc{
 				ApiId:   doc.ID,
 				ApiDesc: doc.Descript,
 				Tag:     string(cateName),
 				Path:    "/" + conf.ServiceName + "/" + conf.Version + "/" + doc.ID,
 				Request: common.ObjInfo{
-					Name:        getObjName(doc.Request),
-					Description: doc.RequestDescript,
-					Fields:      common.NewObjDoc(doc.Request).FieldAttrMap(),
-					DepObjList:  common.NewObjDoc(doc.Request).ListDepObjDoc(),
+					Name: getObjName(doc.Request),
+					Description: func(desc string) string {
+						if desc == "" {
+							return "请求参数"
+						}
+						return desc
+					}(doc.RequestDescript),
+					Fields:     common.NewObjDoc(doc.Request).FieldAttrMap(),
+					DepObjList: common.NewObjDoc(doc.Request).ListDepObjDoc(),
 				},
 				Response: common.ObjInfo{
-					Name:        getObjName(doc.Response),
-					Description: doc.ResponseDescript,
-					Fields:      common.NewObjDoc(doc.Response).FieldAttrMap(),
-					DepObjList:  common.NewObjDoc(doc.Response).ListDepObjDoc(),
+					Name: getObjName(doc.Response),
+					Description: func(desc string) string {
+						if desc == "" {
+							return "响应参数"
+						}
+						return desc
+					}(doc.ResponseDescript),
+					Fields:     common.NewObjDoc(doc.Response).FieldAttrMap(),
+					DepObjList: common.NewObjDoc(doc.Response).ListDepObjDoc(),
 				},
 				SwaggerAPIType: common.SwaggerAPITypeJson,
 			}

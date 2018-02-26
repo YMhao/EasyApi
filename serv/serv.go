@@ -66,6 +66,9 @@ func getPath(conf *APIServConf, apiID string) string {
 }
 
 func runAPICall(api API, c *gin.Context) {
+	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+	c.Writer.Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Origin,Access-Control-Allow-Method,Content-Type")
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
 	contentType := c.Request.Header.Get("Content-Type")
 	contentType = strings.ToLower(contentType)
 	if strings.Contains(contentType, "application/json") {
@@ -83,6 +86,11 @@ func runAPICall(api API, c *gin.Context) {
 			return
 		}
 		handleResponse(c, response)
+	} else {
+		handleError(c, &APIError{
+			Code:     "unknown",
+			Descript: "invalid content-type " + contentType,
+		})
 	}
 }
 
