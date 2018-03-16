@@ -91,7 +91,7 @@ func (a APIColl) AllAPI() map[serv.CateName][]serv.API {
 	}
 }
 
-``
+```
 
 
 main.go
