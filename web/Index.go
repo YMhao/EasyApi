@@ -67,7 +67,10 @@ const IndexPage = `
 				<h5>{{.Description}}</h5>
 				<hr>
 				<span class="label label-success">swagger Edit</span>
-				<h5><a href="https://editor.swagger.io">https://editor.swagger.io<h5>
+				<p>把swagger协议文档复制之后，点击下方链接，在打开的网页中粘贴可进行Api调试。（后面计划修改editor，修改后无需粘贴，直接点击即可打开当前api调试页）</p>
+				<p><a href="http://yuminghao.top:8000/" target="view_window">http://yuminghao.top:8000/</a></p>
+				<p> Generate Server 选项可生成多种语言服务端代码，Generate Client 选项可生成多种语言服务端代码 </p>
+				<p> 转grpc 正在开发中 </p>
 				<hr>
 				<span class="label label-success">Swagger协议文档:</span>
 				{{.SwaggerJSON}}
