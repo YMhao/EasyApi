@@ -7,11 +7,18 @@ import (
 	"github.com/go-openapi/spec"
 )
 
+func getHost(conf *common.APIServConf) string {
+	if conf.HTTPProxy != "" {
+		return conf.HTTPProxy
+	}
+	return GetUrl(conf.ListenAddr)
+}
+
 func GenCode(conf *common.APIServConf, apiDocList []*common.ApiDoc) *Swagger {
 	swagger := &Swagger{}
 	swagger.Init()
 
-	swagger.SetHost(GetUrl(conf.ListenAddr))
+	swagger.SetHost(getHost(conf))
 	swagger.SetBasePath("/" + conf.ServiceName + "/" + conf.Version)
 
 	info := GenInfo(conf.Version, conf.ServiceName, conf.Description)

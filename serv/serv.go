@@ -62,7 +62,8 @@ func genSwagger(conf *APIServConf, apiColl APICollect) (swagerJSON string, err e
 		ServiceName: conf.ServiceName,
 		Description: conf.Description,
 		ListenAddr:  conf.ListenAddr,
-		DebugPage:   conf.DebugPage,
+		DebugOn:     conf.DebugOn,
+		HTTPProxy:   conf.HTTPProxy,
 	}, docList)
 	data, err := swagger.MarshalJSON()
 	if err != nil {

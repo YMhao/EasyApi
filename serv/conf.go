@@ -7,7 +7,8 @@ type APIServConf struct {
 	ServiceName string // 服务名
 	Description string // 服务的描述
 	ListenAddr  string // 监听端口
-	DebugPage   bool   // 是否启用web调试页面
+	DebugOn     bool   // 是否启用debug调试页面
+	HTTPProxy   string // 代理地址
 }
 
 // NewAPIServConf 创建一个服务配置
@@ -18,6 +19,7 @@ func NewAPIServConf(version, buildTime, serviceName, description string) *APISer
 		ServiceName: serviceName,
 		Description: description,
 		ListenAddr:  ":8089",
-		DebugPage:   false,
+		DebugOn:     false,
+		HTTPProxy:   "",
 	}
 }

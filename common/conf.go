@@ -7,5 +7,6 @@ type APIServConf struct {
 	ServiceName string // 服务名
 	Description string // 服务的描述
 	ListenAddr  string // 监听端口
-	DebugPage   bool   // 是否启用web调试页面
+	DebugOn     bool   // 是否启用debug调试页面
+	HTTPProxy   string // 代理地址
 }
