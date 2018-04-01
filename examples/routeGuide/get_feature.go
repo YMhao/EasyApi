@@ -19,7 +19,6 @@ type Feature struct {
 	Location Point  `json:"location" desc:"location"`
 }
 
-// Doc api的文档
 func (g GetFeatureAPi) Doc() *serv.APIDoc {
 	return &serv.APIDoc{
 		ID:               "getFeature",
@@ -31,7 +30,6 @@ func (g GetFeatureAPi) Doc() *serv.APIDoc {
 	}
 }
 
-// Call 回调
 func (g GetFeatureAPi) Call(reqData []byte) (interface{}, *serv.APIError) {
 	req := &Point{}
 	err := json.Unmarshal([]byte(reqData), req)

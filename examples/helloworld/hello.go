@@ -6,25 +6,17 @@ import (
 	"github.com/YMhao/EasyApi/serv"
 )
 
-// HelloRequest 是 hello api 的请求参数
 type HelloRequest struct {
 	Name string `json:"name" desc:"The request message containing the user's name."`
 }
 
-// HelloResp 是 hello aoi 的响应参数
 type HelloResp struct {
 	Message string `json:"message" desc:"The response message containing the greetings"`
 }
 
-// HelloAPI is a hello api
-// type API interface {
-// 	Doc() *APIDoc
-// 	Call(reqData []byte) (interface{}, *APIError)
-// }
 type HelloAPI struct {
 }
 
-// Doc api的文档
 func (h HelloAPI) Doc() *serv.APIDoc {
 	return &serv.APIDoc{
 		ID:               "Hello",
@@ -36,7 +28,6 @@ func (h HelloAPI) Doc() *serv.APIDoc {
 	}
 }
 
-// Call 回调
 func (h HelloAPI) Call(reqData []byte) (interface{}, *serv.APIError) {
 	req := &HelloRequest{}
 	err := json.Unmarshal([]byte(reqData), req)

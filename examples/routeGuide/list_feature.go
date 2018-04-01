@@ -18,7 +18,6 @@ type FeatureList struct {
 type ListFeatureAPi struct {
 }
 
-// Doc api的文档
 func (l ListFeatureAPi) Doc() *serv.APIDoc {
 	return &serv.APIDoc{
 		ID:               "listFeature",
@@ -30,7 +29,6 @@ func (l ListFeatureAPi) Doc() *serv.APIDoc {
 	}
 }
 
-// Call 回调
 func (l ListFeatureAPi) Call(reqData []byte) (interface{}, *serv.APIError) {
 	req := &Rectangle{}
 	err := json.Unmarshal([]byte(reqData), req)
