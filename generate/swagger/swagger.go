@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/go-openapi/spec"
@@ -30,6 +31,13 @@ func (s *Swagger) SetBasePath(BasePath string) {
 }
 
 func (s *Swagger) SetHost(host string) {
+	if strings.HasPrefix(host, "http://") {
+		host = host[7:]
+	}
+	if strings.HasPrefix(host, "https://") {
+		s.Swagger.SwaggerProps.Schemes = []string{"https"}
+		host = host[8:]
+	}
 	s.Swagger.SwaggerProps.Host = host
 }
 

@@ -23,7 +23,7 @@ func getlocalIp() string {
 	return ""
 }
 
-func GetUrl(addr string) string {
+func AutoGetUrl(addr string) string {
 	if len(addr) > 0 {
 		if addr[0] == ':' {
 			ip := getlocalIp()

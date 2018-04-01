@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/base64"
 	"fmt"
 	"html/template"
 )
@@ -8,26 +9,36 @@ import (
 type IndexInfo struct {
 	Name        string
 	Description string
+	URL         string
 	SwaggerJSON string
+	SwaggerYAML string
 }
 
-// IndexInfo 首页信息
-type HtmlIndexInfo struct {
+// HTMLIndexInfo 首页信息
+type HTMLIndexInfo struct {
 	Name        string
 	Description string
+	URLBase64   string
 	SwaggerJSON template.HTML
+	SwaggerYAML template.HTML
 }
 
-func (i *IndexInfo) HtmlIndexInfo() *HtmlIndexInfo {
+func codeHTML(codeType, code string) template.HTML {
 	html := fmt.Sprintf(`
 		<div class="panel-body">
-			<pre class="code json"">%s</pre>
+			<pre class="code %s"">%s</pre>
 		</div>
-		`, i.SwaggerJSON)
-	return &HtmlIndexInfo{
+		`, codeType, code)
+	return template.HTML(html)
+}
+
+func (i *IndexInfo) HTMLIndexInfo() *HTMLIndexInfo {
+	return &HTMLIndexInfo{
 		Name:        i.Name,
 		Description: i.Description,
-		SwaggerJSON: template.HTML(html),
+		URLBase64:   base64.URLEncoding.EncodeToString([]byte(i.URL)),
+		SwaggerJSON: codeHTML("json", i.SwaggerJSON),
+		SwaggerYAML: codeHTML("yaml", i.SwaggerYAML),
 	}
 }
 
@@ -67,13 +78,23 @@ const IndexPage = `
 				<h5>{{.Description}}</h5>
 				<hr>
 				<span class="label label-success">swagger Edit</span>
-				<p>把swagger协议文档复制之后，点击下方链接，在打开的网页中粘贴可进行Api调试。（后面计划修改editor，修改后无需粘贴，直接点击即可打开当前api调试页）</p>
-				<p><a href="http://yuminghao.top:8000/" target="view_window">http://yuminghao.top:8000/</a></p>
+				<p>点击下方链接，可在打开的网页中进行Api调试。</p>
+				<p><a href="http://yuminghao.top:8000/?yamlUrl={{.URLBase64}}" target="view_window">API Debug Page</a></p>
 				<p> Generate Server 选项可生成多种语言服务端代码，Generate Client 选项可生成多种语言服务端代码 </p>
 				<p> 转grpc 正在开发中 </p>
 				<hr>
-				<span class="label label-success">Swagger协议文档:</span>
-				{{.SwaggerJSON}}
+				<ul id="myTab" class="nav nav-tabs">
+					<li class="active"><a href="#yaml" data-toggle="tab">协议(YAML)</a></li>
+					<li><a href="#json" data-toggle="tab">协议(JSON)</a></li>
+				</ul>
+				<div id="myTabContent" class="tab-content">
+					<div class="tab-pane fade in active" id="yaml">
+						{{.SwaggerYAML}}
+					</div>
+					<div class="tab-pane fade" id="json">
+						{{.SwaggerJSON}}
+					</div>
+				</div>
             </div>
         </div>
     </div>

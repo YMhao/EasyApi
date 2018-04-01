@@ -8,12 +8,14 @@ import (
 	"github.com/YMhao/EasyApi/common"
 	"github.com/YMhao/EasyApi/generate/swagger"
 	"github.com/YMhao/EasyApi/web"
+	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 )
 
 // RunAPIServ 启动服务
 func RunAPIServ(conf *APIServConf, apiColl APICollect) {
 	router := gin.Default()
+	web.SetHTMLTemplate(router)
 	allAPI := apiColl.AllAPI()
 	for _, apiList := range allAPI {
 		for _, api := range apiList {
@@ -27,24 +29,67 @@ func RunAPIServ(conf *APIServConf, apiColl APICollect) {
 			})
 		}
 	}
-	initHTML(conf, apiColl, router)
+	if conf.DebugOn {
+		initHTML(conf, apiColl, router)
+	}
 	router.Run(conf.ListenAddr)
 }
 
+func getSwaggerProtocolURL(conf *APIServConf, path string) string {
+	url := swagger.GetHostFromConf(conf.HTTPProxy, conf.ListenAddr) + path
+	if strings.HasPrefix(conf.HTTPProxy, "https://") {
+		return url
+	}
+	if strings.HasPrefix(conf.HTTPProxy, "http://") {
+		return url
+	}
+	return "http://" + url
+}
+
+func jsonToYaml(jsonStr string) (string, error) {
+	yamlBytes, err := yaml.JSONToYAML([]byte(jsonStr))
+	return string(yamlBytes), err
+}
+
 func initHTML(conf *APIServConf, apiColl APICollect, router *gin.Engine) {
-	json, err := genSwagger(conf, apiColl)
+	swaggerJSONStr, err := genSwagger(conf, apiColl)
 	if err != nil {
 		fmt.Println("Warn: ", err)
 	}
+	swaggerYAMLStr, err := jsonToYaml(swaggerJSONStr)
+	if err != nil {
+		fmt.Println("Warn: ", err)
+	}
+	rawSwaggerProtocolJSONPath := "/swaggerJSON"
+	rawSwaggerProtocolYAMLPath := "/swaggerYAML"
 	index := web.IndexInfo{
 		Name:        conf.ServiceName,
 		Description: conf.Description,
-		SwaggerJSON: json,
+		URL:         getSwaggerProtocolURL(conf, rawSwaggerProtocolYAMLPath),
+		SwaggerJSON: swaggerJSONStr,
+		SwaggerYAML: swaggerYAMLStr,
 	}
 	router.GET("/", func(c *gin.Context) {
-		c.HTML(200, "Index", index.HtmlIndexInfo())
+		cors(c, "*")
+		c.HTML(200, "Index", index.HTMLIndexInfo())
 	})
-	web.SetHTMLTemplate(router)
+	router.OPTIONS("/", func(c *gin.Context) {
+		runOpthionCall(c)
+	})
+	router.GET(rawSwaggerProtocolJSONPath, func(c *gin.Context) {
+		cors(c, "*")
+		c.String(200, swaggerJSONStr)
+	})
+	router.OPTIONS(rawSwaggerProtocolJSONPath, func(c *gin.Context) {
+		runOpthionCall(c)
+	})
+	router.GET(rawSwaggerProtocolYAMLPath, func(c *gin.Context) {
+		cors(c, "*")
+		c.String(200, swaggerYAMLStr)
+	})
+	router.OPTIONS(rawSwaggerProtocolYAMLPath, func(c *gin.Context) {
+		runOpthionCall(c)
+	})
 }
 
 func genSwagger(conf *APIServConf, apiColl APICollect) (swagerJSON string, err error) {
@@ -77,9 +122,7 @@ func getPath(conf *APIServConf, apiID string) string {
 }
 
 func runAPICall(api API, c *gin.Context) {
-	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Origin,Access-Control-Allow-Method,Content-Type")
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
+	cors(c, "*")
 	contentType := c.Request.Header.Get("Content-Type")
 	contentType = strings.ToLower(contentType)
 	if strings.Contains(contentType, "application/json") {
@@ -128,4 +171,10 @@ func runOpthionCall(c *gin.Context) {
 	c.Writer.Header().Set("content-type", "application/json")
 
 	c.JSON(200, gin.H{})
+}
+
+func cors(c *gin.Context, origin string) {
+	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+	c.Writer.Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Origin,Access-Control-Allow-Method,Content-Type")
+	c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 }
