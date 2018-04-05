@@ -135,9 +135,12 @@ type A struct {
 # 示例代码
 
 两个自带例子：   
-https://github.com/YMhao/EasyApi/tree/master/examples/helloworld   
+代码: https://github.com/YMhao/EasyApi/tree/master/examples/helloworld   
+服务: http://yuminghao.top:8089
 
-https://github.com/YMhao/EasyApi/tree/master/examples/routeGuide
+
+代码: https://github.com/YMhao/EasyApi/tree/master/examples/routeGuide
+服务: http://yuminghao.top:8088
 
 
 下面展示如何写一个helloworld的服务端   
@@ -188,7 +191,7 @@ func main() {
 			HelloAPI,
 		},
 	}
-	
+
 	serv.RunAPIServ(conf, setsOfAPIs)
 }
 
