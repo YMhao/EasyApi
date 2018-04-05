@@ -11,6 +11,10 @@ type APIServConf struct {
 	HTTPProxy   string // http proxy
 }
 
+func (c *APIServConf) format() {
+	c.Description = formatDescript(c.Description)
+}
+
 // NewAPIServConf create a new configuration of the server
 func NewAPIServConf(version, buildTime, serviceName, description string) *APIServConf {
 	return &APIServConf{

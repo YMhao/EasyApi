@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/YMhao/EasyApi/serv"
+	"github.com/gin-gonic/gin"
 )
 
 type Point struct {
@@ -16,20 +17,21 @@ type Feature struct {
 
 var GetFeatureAPi = serv.NewAPI(
 	"getFeature",
-	`Obtains the feature at a given position`,
+	`A feature with an empty name is returned if there's no feature at the given
+	position`,
 	&Point{},
 	&Feature{},
 	GetFeatureCall,
 )
 
-func GetFeatureCall(data []byte) (interface{}, *serv.APIError) {
+func GetFeatureCall(data []byte, c *gin.Context) (interface{}, *serv.APIError) {
 	req := &Point{}
 	err := serv.UnmarshalAndCheckValue(data, req)
 	if err != nil {
 		return nil, serv.NewError(err)
 	}
 	return &Feature{
-		Name:     "Guangdong",
+		Name:     "Name1",
 		Location: *req,
 	}, nil
 }

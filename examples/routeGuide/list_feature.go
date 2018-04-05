@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/YMhao/EasyApi/serv"
+	"github.com/gin-gonic/gin"
 )
 
 type Rectangle struct {
@@ -15,31 +16,35 @@ type FeatureList struct {
 
 var ListFeatureAPi = serv.NewAPI(
 	"listFeature",
-	`list feature`,
+	`Obtains the Features available within the given Rectangle.  Results are
+	streamed rather than returned at once (e.g. in a response message with a
+	repeated field), as the rectangle may cover a large area and contain a
+	huge number of features.`,
 	&Rectangle{},
 	&FeatureList{},
 	ListFeatureCall,
 )
 
-func ListFeatureCall(data []byte) (interface{}, *serv.APIError) {
+func ListFeatureCall(data []byte, c *gin.Context) (interface{}, *serv.APIError) {
 	req := &Rectangle{}
 	err := serv.UnmarshalAndCheckValue(data, req)
 	if err != nil {
 		return nil, serv.NewError(err)
 	}
+
 	return &FeatureList{
 		FeatureList: []*Feature{
 			&Feature{
-				Name: "Guangdong",
+				Name: "Name1",
 				Location: Point{
 					Latitude:  1,
 					Longitude: 2,
 				},
 			},
 			&Feature{
-				Name: "Beijing",
+				Name: "Name2",
 				Location: Point{
-					Latitude:  1,
+					Latitude:  3,
 					Longitude: 2,
 				},
 			},

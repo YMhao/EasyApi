@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/YMhao/EasyApi/serv"
+	"github.com/gin-gonic/gin"
 )
 
 type HelloRequest struct {
@@ -14,13 +15,13 @@ type HelloRespone struct {
 
 var HelloAPI = serv.NewAPI(
 	"helloWord",
-	`api for helloword`,
+	`The greeting service definition`,
 	&HelloRequest{},
 	&HelloRespone{},
 	HelloAPICall,
 )
 
-func HelloAPICall(data []byte) (interface{}, *serv.APIError) {
+func HelloAPICall(data []byte, c *gin.Context) (interface{}, *serv.APIError) {
 	req := &HelloRequest{}
 	err := serv.UnmarshalAndCheckValue(data, req)
 	if err != nil {

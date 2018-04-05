@@ -2,6 +2,8 @@ package serv
 
 import (
 	"errors"
+
+	"github.com/gin-gonic/gin"
 )
 
 // APIDoc 包含以下属性
@@ -69,7 +71,7 @@ type APIError struct {
 // API 是个 接口
 type API interface {
 	Doc() *APIDoc
-	Call(reqData []byte) (interface{}, *APIError)
+	Call([]byte, *gin.Context) (interface{}, *APIError)
 }
 
 // APISets  the sets of APIs,  map key is the name of set
@@ -82,29 +84,29 @@ type CommonAPI struct {
 	request          interface{}
 	responseDescript string
 	response         interface{}
-	call             func([]byte) (interface{}, *APIError)
+	call             func([]byte, *gin.Context) (interface{}, *APIError)
 }
 
-func (c *CommonAPI) Doc() *APIDoc {
+func (comm *CommonAPI) Doc() *APIDoc {
 	return &APIDoc{
-		ID:               c.id,
-		Descript:         c.descript,
-		RequestDescript:  c.requestDescript,
-		Request:          c.request,
-		ResponseDescript: c.responseDescript,
-		Response:         c.response,
+		ID:               comm.id,
+		Descript:         comm.descript,
+		RequestDescript:  comm.requestDescript,
+		Request:          comm.request,
+		ResponseDescript: comm.responseDescript,
+		Response:         comm.response,
 	}
 }
 
-func (c *CommonAPI) Call(data []byte) (interface{}, *APIError) {
-	if c.call != nil {
-		return c.call(data)
+func (comm *CommonAPI) Call(data []byte, c *gin.Context) (interface{}, *APIError) {
+	if comm.call != nil {
+		return comm.call(data, c)
 	}
 	return nil, NewError(errors.New("the callbacke function is not found"))
 }
 
-func (c *CommonAPI) SetCallback(call func([]byte) (interface{}, *APIError)) {
-	c.call = call
+func (comm *CommonAPI) SetCallback(call func([]byte, *gin.Context) (interface{}, *APIError)) {
+	comm.call = call
 }
 
 // NewAPI create a new api with some info
@@ -112,11 +114,12 @@ func (c *CommonAPI) SetCallback(call func([]byte) (interface{}, *APIError)) {
 // APIDesc: the descript of this api
 // request: a struct, http request
 // respone: a struct, http response
-// callback: a callback function, func([]byte) (interface{}, *APIError)
-func NewAPI(APIName, APIDesc string, request interface{}, response interface{}, callback func([]byte) (interface{}, *APIError)) API {
+// callback: a callback function, func([]byte, *gin.Context) (interface{}, *APIError)
+func NewAPI(APIName, APIDesc string, request interface{}, response interface{},
+	callback func([]byte, *gin.Context) (interface{}, *APIError)) API {
 	return &CommonAPI{
 		id:               APIName,
-		descript:         APIDesc,
+		descript:         formatDescript(APIDesc),
 		requestDescript:  "request context",
 		request:          request,
 		responseDescript: "respone context",

@@ -14,6 +14,7 @@ import (
 
 // RunAPIServ 启动服务
 func RunAPIServ(conf *APIServConf, setsOfAPIs APISets) {
+	conf.format()
 	router := gin.Default()
 	web.SetHTMLTemplate(router)
 	for _, APISet := range setsOfAPIs {
@@ -133,7 +134,7 @@ func runAPICall(api API, c *gin.Context) {
 			})
 			return
 		}
-		response, apiErr := api.Call(body)
+		response, apiErr := api.Call(body, c)
 		if apiErr != nil {
 			handleError(c, apiErr)
 			return
