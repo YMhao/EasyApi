@@ -1,12 +1,8 @@
 package swagger
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -70,42 +66,4 @@ func (s *Swagger) MarshalYAML() ([]byte, error) {
 		return nil, err
 	}
 	return yaml.JSONToYAML(data)
-}
-
-type StdError struct {
-	HasError  bool
-	ErrorDesc string
-}
-
-func (s *Swagger) PostSwaggerUi(url string) error {
-	if url == "" {
-		url = "http://192.168.1.113:8000/call?id=test.AddProject&v=xx"
-	}
-	data, err := s.MarshalJSON()
-	if err != nil {
-		return err
-	}
-
-	rsp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		return err
-	}
-	if rsp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("StatusCode: %d", rsp.StatusCode))
-	}
-
-	data, err = ioutil.ReadAll(rsp.Body)
-	if err != nil {
-		return err
-	}
-
-	e := &StdError{}
-	err = json.Unmarshal(data, e)
-	if err != nil {
-		return err
-	}
-	if e.HasError {
-		return errors.New(e.ErrorDesc)
-	}
-	return nil
 }

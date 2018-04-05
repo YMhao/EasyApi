@@ -1,5 +1,9 @@
 package serv
 
+import (
+	"errors"
+)
+
 // APIDoc 包含以下属性
 // 1、api的描述
 // 2、api的id
@@ -58,12 +62,65 @@ type APIDoc struct {
 // 2、希望Code能用一个简短的字符串来代表一个code，直接看code就可以知道大概时一个什么错误。
 // 3、虽然希望时可以用一个简短字符串，但是不强求，因为数字也是一个字符串。
 type APIError struct {
-	Code     string `json:"code" desc:"错误码"`
-	Descript string `json:"description" desc:"错误的描述"`
+	Code    string `json:"code" desc:"错误码"`
+	Message string `json:"messge" desc:"错误信息"`
 }
 
 // API 是个 接口
 type API interface {
 	Doc() *APIDoc
 	Call(reqData []byte) (interface{}, *APIError)
+}
+
+// APISets  the sets of APIs,  map key is the name of set
+type APISets map[string][]API
+
+type CommonAPI struct {
+	id               string
+	descript         string
+	requestDescript  string
+	request          interface{}
+	responseDescript string
+	response         interface{}
+	call             func([]byte) (interface{}, *APIError)
+}
+
+func (c *CommonAPI) Doc() *APIDoc {
+	return &APIDoc{
+		ID:               c.id,
+		Descript:         c.descript,
+		RequestDescript:  c.requestDescript,
+		Request:          c.request,
+		ResponseDescript: c.responseDescript,
+		Response:         c.response,
+	}
+}
+
+func (c *CommonAPI) Call(data []byte) (interface{}, *APIError) {
+	if c.call != nil {
+		return c.call(data)
+	}
+	return nil, NewError(errors.New("the callbacke function is not found"))
+}
+
+func (c *CommonAPI) SetCallback(call func([]byte) (interface{}, *APIError)) {
+	c.call = call
+}
+
+// NewAPI create a new api with some info
+// APIName: be used to router
+// APIDesc: the descript of this api
+// request: a struct, http request
+// respone: a struct, http response
+// callback: a callback function, func([]byte) (interface{}, *APIError)
+func NewAPI(APIName, APIDesc string, request interface{}, response interface{}, callback func([]byte) (interface{}, *APIError)) API {
+	return &CommonAPI{
+		id:               APIName,
+		descript:         APIDesc,
+		requestDescript:  "request context",
+		request:          request,
+		responseDescript: "respone context",
+		response:         response,
+		call:             callback,
+	}
 }

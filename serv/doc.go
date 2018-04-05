@@ -21,16 +21,15 @@ func getObjPkgPath(obj interface{}) string {
 	return t.PkgPath()
 }
 
-func genAPIDocList(conf *APIServConf, apiColl APICollect) []*common.ApiDoc {
+func genAPIDocList(conf *APIServConf, setsOfAPIs APISets) []*common.ApiDoc {
 	m := []*common.ApiDoc{}
-	allAPI := apiColl.AllAPI()
-	for cateName, apiList := range allAPI {
-		for _, api := range apiList {
-			doc := api.Doc()
+	for nameOfset, APIs := range setsOfAPIs {
+		for _, API := range APIs {
+			doc := API.Doc()
 			apiDoc := &common.ApiDoc{
 				ApiId:   doc.ID,
 				ApiDesc: doc.Descript,
-				Tag:     string(cateName),
+				Tag:     string(nameOfset),
 				Path:    "/" + doc.ID,
 				Request: common.ObjInfo{
 					Name: getObjName(doc.Request),

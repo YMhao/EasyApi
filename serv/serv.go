@@ -13,16 +13,15 @@ import (
 )
 
 // RunAPIServ 启动服务
-func RunAPIServ(conf *APIServConf, apiColl APICollect) {
+func RunAPIServ(conf *APIServConf, setsOfAPIs APISets) {
 	router := gin.Default()
 	web.SetHTMLTemplate(router)
-	allAPI := apiColl.AllAPI()
-	for _, apiList := range allAPI {
-		for _, api := range apiList {
-			apiDoc := api.Doc()
+	for _, APISet := range setsOfAPIs {
+		for _, API := range APISet {
+			apiDoc := API.Doc()
 			path := getPath(conf, apiDoc.ID)
 			router.POST(path, func(c *gin.Context) {
-				runAPICall(api, c)
+				runAPICall(API, c)
 			})
 			router.OPTIONS(path, func(c *gin.Context) {
 				runOpthionCall(c)
@@ -30,7 +29,7 @@ func RunAPIServ(conf *APIServConf, apiColl APICollect) {
 		}
 	}
 	if conf.DebugOn {
-		initHTML(conf, apiColl, router)
+		initHTML(conf, setsOfAPIs, router)
 	}
 	router.Run(conf.ListenAddr)
 }
@@ -51,8 +50,8 @@ func jsonToYaml(jsonStr string) (string, error) {
 	return string(yamlBytes), err
 }
 
-func initHTML(conf *APIServConf, apiColl APICollect, router *gin.Engine) {
-	swaggerJSONStr, err := genSwagger(conf, apiColl)
+func initHTML(conf *APIServConf, setsOfAPIs APISets, router *gin.Engine) {
+	swaggerJSONStr, err := genSwagger(conf, setsOfAPIs)
 	if err != nil {
 		fmt.Println("Warn: ", err)
 	}
@@ -92,7 +91,7 @@ func initHTML(conf *APIServConf, apiColl APICollect, router *gin.Engine) {
 	})
 }
 
-func genSwagger(conf *APIServConf, apiColl APICollect) (swagerJSON string, err error) {
+func genSwagger(conf *APIServConf, setsOfAPIs APISets) (swagerJSON string, err error) {
 	defer func() {
 		if p := recover(); p != nil {
 			err = fmt.Errorf("internal error: %v", p)
@@ -100,7 +99,7 @@ func genSwagger(conf *APIServConf, apiColl APICollect) (swagerJSON string, err e
 		}
 	}()
 
-	docList := genAPIDocList(conf, apiColl)
+	docList := genAPIDocList(conf, setsOfAPIs)
 	swagger := swagger.GenCode(&common.APIServConf{
 		Version:     conf.Version,
 		BuildTime:   conf.BuildTime,
@@ -129,8 +128,8 @@ func runAPICall(api API, c *gin.Context) {
 		body, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
 			handleError(c, &APIError{
-				Code:     "unknown",
-				Descript: err.Error(),
+				Code:    unknown,
+				Message: err.Error(),
 			})
 			return
 		}
@@ -142,8 +141,8 @@ func runAPICall(api API, c *gin.Context) {
 		handleResponse(c, response)
 	} else {
 		handleError(c, &APIError{
-			Code:     "unknown",
-			Descript: "invalid content-type " + contentType,
+			Code:    unknown,
+			Message: "invalid content-type " + contentType,
 		})
 	}
 }

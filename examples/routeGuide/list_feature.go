@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-
 	"github.com/YMhao/EasyApi/serv"
 )
 
@@ -15,28 +13,19 @@ type FeatureList struct {
 	FeatureList []*Feature `json:"featureList" desc:"FeatureList"`
 }
 
-type ListFeatureAPi struct {
-}
+var ListFeatureAPi = serv.NewAPI(
+	"listFeature",
+	`list feature`,
+	&Rectangle{},
+	&FeatureList{},
+	ListFeatureCall,
+)
 
-func (l ListFeatureAPi) Doc() *serv.APIDoc {
-	return &serv.APIDoc{
-		ID:               "listFeature",
-		Descript:         "Get Feature",
-		RequestDescript:  "该请求对象为Rectangle",
-		Request:          &Rectangle{},
-		ResponseDescript: "该响应对象为FeatureList",
-		Response:         &FeatureList{},
-	}
-}
-
-func (l ListFeatureAPi) Call(reqData []byte) (interface{}, *serv.APIError) {
+func ListFeatureCall(data []byte) (interface{}, *serv.APIError) {
 	req := &Rectangle{}
-	err := json.Unmarshal([]byte(reqData), req)
+	err := serv.UnmarshalAndCheckValue(data, req)
 	if err != nil {
-		return nil, &serv.APIError{
-			Code:     "json.unmarshal",
-			Descript: err.Error(),
-		}
+		return nil, serv.NewError(err)
 	}
 	return &FeatureList{
 		FeatureList: []*Feature{

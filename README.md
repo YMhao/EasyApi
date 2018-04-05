@@ -18,95 +18,51 @@ https://github.com/YMhao/EasyApi/tree/master/examples/routeGuide
 
 hello.go
 ```
-package main
-
 import (
-	"encoding/json"
-
 	"github.com/YMhao/EasyApi/serv"
 )
 
-// HelloRequest 是 hello api 的请求参数
 type HelloRequest struct {
-	Name string `json:"name" desc:"The request message containing the user's name."`
+	Name string `desc:"The request message containing the user's name."`
 }
 
-// HelloResp 是 hello aoi 的响应参数
-type HelloResp struct {
-	Message string `json:"message" desc:"The response message containing the greetings"`
+type HelloRespone struct {
+	Message string `desc:"The response message containing the greetings"`
 }
 
-// HelloAPI is a hello api
-// type API interface {
-// 	Doc() *APIDoc
-// 	Call(reqData []byte) (interface{}, *APIError)
-// }
-type HelloAPI struct {
-}
+var HelloAPI = serv.NewAPI(
+	"helloWord",
+	`api for helloword`,
+	&HelloRequest{},
+	&HelloRespone{},
+	HelloAPICall,
+)
 
-// Doc api的文档
-func (h HelloAPI) Doc() *serv.APIDoc {
-	return &serv.APIDoc{
-		ID:               "Hello",
-		Descript:         "helloworld service",
-		RequestDescript:  "该请求包含用户名信息",
-		Request:          &HelloRequest{},
-		ResponseDescript: "该响应包含问候信息",
-		Response:         &HelloResp{},
-	}
-}
-
-// Call 回调
-func (h HelloAPI) Call(reqData []byte) (interface{}, *serv.APIError) {
+func HelloAPICall(data []byte) (interface{}, *serv.APIError) {
 	req := &HelloRequest{}
-	err := json.Unmarshal([]byte(reqData), req)
+	err := serv.UnmarshalAndCheckValue(data, req)
 	if err != nil {
-		return nil, &serv.APIError{
-			Code:     "json.unmarshal",
-			Descript: err.Error(),
-		}
+		return nil, serv.NewError(err)
 	}
 
-	return &HelloResp{
+	return &HelloRespone{
 		Message: "hello " + req.Name + "!",
 	}, nil
 }
 
-```
-
-api_coll.go
-```
-// APIColl api集合
-import "github.com/YMhao/EasyApi/serv"
-
-type APIColl struct {
-}
-
-// AllAPI 列出所有api
-func (a APIColl) AllAPI() map[serv.CateName][]serv.API {
-	return map[serv.CateName][]serv.API{
-		"helloServ": []serv.API{
-			&HelloAPI{},
-		},
-	}
-}
-
-```
-
-
-main.go
-```
-
-package main
-
-import (
-	"github.com/YMhao/EasyApi/serv"
-)
-
 func main() {
 	conf := serv.NewAPIServConf("1.0", "", "helloWorld", "EasyApi 的 hello World")
-	serv.RunAPIServ(conf, &APIColl{})
-}
+	conf.DebugOn = true
+	conf.ListenAddr = ":8089"
 
+	setsOfAPIs := serv.APISets{
+		"MessageAPIs": []serv.API{
+			HelloAPI,
+		},
+	}
+
+	//conf.HTTPProxy = "http://yuminghao.top:8089"
+	serv.RunAPIServ(conf, setsOfAPIs)
+}
 
 ```

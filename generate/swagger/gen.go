@@ -223,7 +223,7 @@ func getStdRespSchema(apiDoc *common.ApiDoc) *spec.Schema {
 		},
 	}
 	schema.SchemaProps.Properties["error"].SchemaProps.Properties["code"] = *spec.StringProperty()
-	schema.SchemaProps.Properties["error"].SchemaProps.Properties["description"] = *spec.StringProperty()
+	schema.SchemaProps.Properties["error"].SchemaProps.Properties["message"] = *spec.StringProperty()
 	return schema
 }
 

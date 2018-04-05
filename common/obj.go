@@ -56,6 +56,9 @@ func (o *ObjDoc) checkNameAndDesc(fieldName, name, desc string) {
 
 func (o *ObjDoc) fieldDoc(attrMap map[string]*Attr, field reflect.StructField) {
 	name := field.Tag.Get("json")
+	if name == "" {
+		name = field.Name
+	}
 	desc := field.Tag.Get("desc")
 	o.checkNameAndDesc(field.Name, name, desc)
 	if "" == name {
