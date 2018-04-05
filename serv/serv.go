@@ -52,11 +52,7 @@ func jsonToYaml(jsonStr string) (string, error) {
 }
 
 func initHTML(conf *APIServConf, setsOfAPIs APISets, router *gin.Engine) {
-	swaggerJSONStr, err := genSwagger(conf, setsOfAPIs)
-	if err != nil {
-		fmt.Println("Warn: ", err)
-	}
-	swaggerYAMLStr, err := jsonToYaml(swaggerJSONStr)
+	swaggerJSONStr, swaggerYAMLStr, err := genSwagger(conf, setsOfAPIs)
 	if err != nil {
 		fmt.Println("Warn: ", err)
 	}
@@ -92,7 +88,7 @@ func initHTML(conf *APIServConf, setsOfAPIs APISets, router *gin.Engine) {
 	})
 }
 
-func genSwagger(conf *APIServConf, setsOfAPIs APISets) (swagerJSON string, err error) {
+func genSwagger(conf *APIServConf, setsOfAPIs APISets) (swagerJSON string, swagerYaml string, err error) {
 	defer func() {
 		if p := recover(); p != nil {
 			err = fmt.Errorf("internal error: %v", p)
@@ -110,11 +106,15 @@ func genSwagger(conf *APIServConf, setsOfAPIs APISets) (swagerJSON string, err e
 		DebugOn:     conf.DebugOn,
 		HTTPProxy:   conf.HTTPProxy,
 	}, docList)
-	data, err := swagger.MarshalJSON()
+	jsonData, err := swagger.MarshalJSON()
 	if err != nil {
-		return "", nil
+		return "", "", nil
 	}
-	return string(data), nil
+	yamlData, err := swagger.MarshalYAML()
+	if err != nil {
+		return "", "", nil
+	}
+	return string(jsonData), string(yamlData), nil
 }
 
 func getPath(conf *APIServConf, apiID string) string {
