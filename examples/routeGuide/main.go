@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	conf := serv.NewAPIServConf("1.0", "", "routeGuide", "EasyApi 的 routeGuide server demo")
+	conf := serv.NewAPIServConf("1.0", "", "routeGuide", "EasyApi - routeGuide server demo")
 	conf.DebugOn = true
 	conf.ListenAddr = ":8088"
 

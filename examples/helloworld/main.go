@@ -33,7 +33,7 @@ func HelloAPICall(data []byte) (interface{}, *serv.APIError) {
 }
 
 func main() {
-	conf := serv.NewAPIServConf("1.0", "", "helloWorld", "EasyApi 的 hello World")
+	conf := serv.NewAPIServConf("1.0", "", "helloWorld", "EasyApi demo - hello World")
 	conf.DebugOn = true
 	conf.ListenAddr = ":8089"
 

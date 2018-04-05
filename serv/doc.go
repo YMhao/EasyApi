@@ -35,7 +35,7 @@ func genAPIDocList(conf *APIServConf, setsOfAPIs APISets) []*common.ApiDoc {
 					Name: getObjName(doc.Request),
 					Description: func(desc string) string {
 						if desc == "" {
-							return "请求参数"
+							return "request context"
 						}
 						return desc
 					}(doc.RequestDescript),
@@ -47,7 +47,7 @@ func genAPIDocList(conf *APIServConf, setsOfAPIs APISets) []*common.ApiDoc {
 					Name: getObjName(doc.Response),
 					Description: func(desc string) string {
 						if desc == "" {
-							return "响应参数"
+							return "response context"
 						}
 						return desc
 					}(doc.ResponseDescript),

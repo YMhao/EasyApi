@@ -74,18 +74,14 @@ const IndexPage = `
                 <h3 class="panel-title">{{.Name}}</h3>
 			</div>
 			<div class="panel-body">
-				<span class="label label-success">服务描述</span>
+				<span class="label label-success">Server decription</span>
 				<h5>{{.Description}}</h5>
 				<hr>
-				<span class="label label-success">swagger Edit</span>
-				<p>点击下方链接，可在打开的网页中进行Api调试。</p>
 				<p><a href="http://yuminghao.top:8000/?yamlUrl={{.URLBase64}}" target="view_window">API Debug Page</a></p>
-				<p> Generate Server 选项可生成多种语言服务端代码，Generate Client 选项可生成多种语言服务端代码 </p>
-				<p> 转grpc 正在开发中 </p>
 				<hr>
 				<ul id="myTab" class="nav nav-tabs">
-					<li class="active"><a href="#yaml" data-toggle="tab">协议(YAML)</a></li>
-					<li><a href="#json" data-toggle="tab">协议(JSON)</a></li>
+					<li class="active"><a href="#yaml" data-toggle="tab">swagger(YAML)</a></li>
+					<li><a href="#json" data-toggle="tab">swagger(JSON)</a></li>
 				</ul>
 				<div id="myTabContent" class="tab-content">
 					<div class="tab-pane fade in active" id="yaml">

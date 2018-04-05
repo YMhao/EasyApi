@@ -1,12 +1,12 @@
 package common
 
-// APIServConf 是服务器配置
+// APIServConf  is the configuration of the server
 type APIServConf struct {
-	Version     string // 版本号
-	BuildTime   string // 编译时间
-	ServiceName string // 服务名
-	Description string // 服务的描述
-	ListenAddr  string // 监听端口
-	DebugOn     bool   // 是否启用debug调试页面
-	HTTPProxy   string // 代理地址
+	Version     string // version of the server
+	BuildTime   string // time build
+	ServiceName string // server name
+	Description string // server description
+	ListenAddr  string // listen add , such as ":80", "192.168.1.1:8080"
+	DebugOn     bool   // debug switch
+	HTTPProxy   string // http proxy
 }

@@ -1,6 +1,6 @@
 package common
 
-// Attr 是元素的属性值
+// Attr : the attribute
 type Attr struct {
 	Type      string      `json:"type"`
 	Desc      string      `json:"desc"`
@@ -9,7 +9,7 @@ type Attr struct {
 	ExtraAttr interface{} `json:"extraAttr"`
 }
 
-// IntExtraAttr 整型扩展属性值
+// IntExtraAttr : the  attribute of the int in extra
 type IntExtraAttr struct {
 	HasMin        bool    `json:"hasMin"`
 	Min           int64   `json:"min"`
@@ -19,7 +19,7 @@ type IntExtraAttr struct {
 	EnumValueList []int64 `json:"enumValueList"`
 }
 
-// FloatExtraAttr 浮点扩展属性值
+// FloatExtraAttr : the Property of the float in extra
 type FloatExtraAttr struct {
 	HasMin bool    `json:"hasMin"`
 	Min    float64 `json:"min"`
@@ -27,13 +27,13 @@ type FloatExtraAttr struct {
 	Max    float64 `json:"max"`
 }
 
-// StrExtraAttr 字符串扩展属性值
+// StrExtraAttr : the Property of the string in extra
 type StrExtraAttr struct {
 	IsEnumValue   bool     `json:"isEnumValue"`
 	EnumValueList []string `json:"enumValueList"`
 }
 
-// ArrayExtraAttr 数组扩展属性值
+// ArrayExtraAttr : the Property of the array
 type ArrayExtraAttr struct {
 	ItemType string `json:"itemType"`
 	IsStruct bool   `json:"-"`

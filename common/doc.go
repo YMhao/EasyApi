@@ -19,7 +19,7 @@ type ObjInfo struct {
 	Description string           `json:"description"`
 	Fields      map[string]*Attr `json:"fields"`
 	DepObjList  []DepObjDoc      `json:"depObjList"`
-	PkgPath     string           `json:"-"` // 用于防止重复
+	PkgPath     string           `json:"-"` // for avoiding repetition
 }
 
 type ApiDoc struct {
