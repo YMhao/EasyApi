@@ -12,23 +12,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func getApiMap(setsOfAPIs APISets) map[string]API {
+	apiMap := make(map[string]API)
+	for _, APISet := range setsOfAPIs {
+		for _, API := range APISet {
+			apiDoc := API.Doc()
+			apiMap[apiDoc.ID] = API
+		}
+	}
+	return apiMap
+}
+
 // RunAPIServ 启动服务
 func RunAPIServ(conf *APIServConf, setsOfAPIs APISets) {
 	conf.format()
 	router := gin.Default()
 	web.SetHTMLTemplate(router)
-	for _, APISet := range setsOfAPIs {
-		for _, API := range APISet {
-			apiDoc := API.Doc()
-			path := getPath(conf, apiDoc.ID)
-			router.POST(path, func(c *gin.Context) {
-				runAPICall(API, c)
-			})
-			router.OPTIONS(path, func(c *gin.Context) {
-				runOpthionCall(c)
-			})
-		}
-	}
+
+	apiMap := getApiMap(setsOfAPIs)
+	Key := "id"
+	path := getBasePath(conf) + "/:" + Key
+	router.POST(path, func(c *gin.Context) {
+		runAPICall(apiMap, c, Key)
+	})
+	router.OPTIONS(path, func(c *gin.Context) {
+		runAPIOpthionCall(apiMap, c, Key)
+	})
+
 	if conf.DebugOn {
 		initHTML(conf, setsOfAPIs, router)
 	}
@@ -121,7 +131,11 @@ func getPath(conf *APIServConf, apiID string) string {
 	return "/" + conf.ServiceName + "/" + conf.Version + "/" + apiID
 }
 
-func runAPICall(api API, c *gin.Context) {
+func getBasePath(conf *APIServConf) string {
+	return "/" + conf.ServiceName + "/" + conf.Version
+}
+
+func runAPICall(apiMap map[string]API, c *gin.Context, key string) {
 	cors(c, "*")
 	contentType := c.Request.Header.Get("Content-Type")
 	contentType = strings.ToLower(contentType)
@@ -132,6 +146,11 @@ func runAPICall(api API, c *gin.Context) {
 				Code:    unknown,
 				Message: err.Error(),
 			})
+			return
+		}
+		api, ok := apiMap[c.Param(key)]
+		if !ok {
+			handleNotFound(c)
 			return
 		}
 		response, apiErr := api.Call(body, c)
@@ -146,6 +165,19 @@ func runAPICall(api API, c *gin.Context) {
 			Message: "invalid content-type " + contentType,
 		})
 	}
+}
+
+func runAPIOpthionCall(apiMap map[string]API, c *gin.Context, key string) {
+	_, ok := apiMap[c.Param(key)]
+	if !ok {
+		handleNotFound(c)
+		return
+	}
+	runOpthionCall(c)
+}
+
+func handleNotFound(c *gin.Context) {
+	c.String(400, "")
 }
 
 func handleError(c *gin.Context, apiErr *APIError) {
