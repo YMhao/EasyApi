@@ -12,15 +12,24 @@ type IndexInfo struct {
 	URL         string
 	SwaggerJSON string
 	SwaggerYAML string
+	HTTPS       bool
 }
 
 // HTMLIndexInfo 首页信息
 type HTMLIndexInfo struct {
-	Name        string
-	Description string
-	URLBase64   string
-	SwaggerJSON template.HTML
-	SwaggerYAML template.HTML
+	Name           string
+	Description    string
+	URLBase64      string
+	SwaggerJSON    template.HTML
+	SwaggerYAML    template.HTML
+	SwaggerEditURL string
+}
+
+func getSwaggerEditorUURL(https bool) string {
+	if https {
+		return "https://yuminghao.top:8443"
+	}
+	return "http://yuminghao.top:8000"
 }
 
 func codeHTML(codeType, code string) template.HTML {
@@ -34,11 +43,12 @@ func codeHTML(codeType, code string) template.HTML {
 
 func (i *IndexInfo) HTMLIndexInfo() *HTMLIndexInfo {
 	return &HTMLIndexInfo{
-		Name:        i.Name,
-		Description: i.Description,
-		URLBase64:   base64.URLEncoding.EncodeToString([]byte(i.URL)),
-		SwaggerJSON: codeHTML("json", i.SwaggerJSON),
-		SwaggerYAML: codeHTML("yaml", i.SwaggerYAML),
+		Name:           i.Name,
+		Description:    i.Description,
+		URLBase64:      base64.URLEncoding.EncodeToString([]byte(i.URL)),
+		SwaggerJSON:    codeHTML("json", i.SwaggerJSON),
+		SwaggerYAML:    codeHTML("yaml", i.SwaggerYAML),
+		SwaggerEditURL: getSwaggerEditorUURL(i.HTTPS),
 	}
 }
 
@@ -52,12 +62,12 @@ const IndexPage = `
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{{.Name}}</title>
 	
-    <link href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
-	<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
-	<script src="http://libs.baidu.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <link href="https://cdn.bootcss.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<script src="https://cdn.bootcss.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
 
-	<link href="http://cdn.bootcss.com/highlight.js/8.0/styles/github.min.css" rel="stylesheet">  
-	<script src="http://cdn.bootcss.com/highlight.js/8.0/highlight.min.js"></script>  
+	<link href="https://cdn.bootcss.com/highlight.js/8.0/styles/github.min.css" rel="stylesheet">  
+	<script src="https://cdn.bootcss.com/highlight.js/8.0/highlight.min.js"></script>  
 	<script type="text/javascript">
 		$(document).ready(function(){
 			$('pre.code').each(function(i, block) {
@@ -77,7 +87,7 @@ const IndexPage = `
 				<span class="label label-success">Server decription</span>
 				<h5>{{.Description}}</h5>
 				<hr>
-				<p><a href="http://yuminghao.top:8000/?yamlUrl={{.URLBase64}}" target="view_window">API Debug Page</a></p>
+				<p><a href="{{.SwaggerEditURL}}/?yamlUrl={{.URLBase64}}" target="view_window">API Debug Page</a></p>
 				<hr>
 				<ul id="myTab" class="nav nav-tabs">
 					<li class="active"><a href="#yaml" data-toggle="tab">swagger(YAML)</a></li>

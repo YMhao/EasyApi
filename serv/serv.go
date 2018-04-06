@@ -74,6 +74,7 @@ func initHTML(conf *APIServConf, setsOfAPIs APISets, router *gin.Engine) {
 		URL:         getSwaggerProtocolURL(conf, rawSwaggerProtocolYAMLPath),
 		SwaggerJSON: swaggerJSONStr,
 		SwaggerYAML: swaggerYAMLStr,
+		HTTPS:       strings.HasPrefix(conf.HTTPProxy, "https://"),
 	}
 	router.GET("/", func(c *gin.Context) {
 		cors(c, "*")
