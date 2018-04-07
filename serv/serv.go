@@ -155,11 +155,7 @@ func runAPICall(apiMap map[string]API, c *gin.Context, key string) {
 			return
 		}
 		response, apiErr := api.Call(body, c)
-		if apiErr != nil {
-			handleError(c, apiErr)
-			return
-		}
-		handleResponse(c, response)
+		handleCall(c, response, apiErr)
 	} else {
 		handleError(c, &APIError{
 			Code:    unknown,
@@ -179,6 +175,15 @@ func runAPIOpthionCall(apiMap map[string]API, c *gin.Context, key string) {
 
 func handleNotFound(c *gin.Context) {
 	c.String(400, "")
+}
+
+func handleCall(c *gin.Context, response interface{}, apiErr *APIError) {
+	c.Writer.Header().Set("content-type", "application/json")
+	c.JSON(200, &CallResponse{
+		HasError: (apiErr != nil),
+		Error:    apiErr,
+		Data:     response,
+	})
 }
 
 func handleError(c *gin.Context, apiErr *APIError) {
