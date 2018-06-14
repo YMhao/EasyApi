@@ -174,7 +174,7 @@ func HelloAPICall(data []byte, c *gin.Context) (interface{}, *serv.APIError) {
 	req := &HelloRequest{}
 	err := serv.UnmarshalAndCheckValue(data, req)
 	if err != nil {
-		return nil, serv.NewError(err)
+		return nil, serv.NewDefaultError(err)
 	}
 
 	return &HelloRespone{
