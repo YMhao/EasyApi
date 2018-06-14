@@ -102,7 +102,7 @@ func (comm *CommonAPI) Call(data []byte, c *gin.Context) (interface{}, *APIError
 	if comm.call != nil {
 		return comm.call(data, c)
 	}
-	return nil, NewError(errors.New("the callbacke function is not found"))
+	return nil, NewDefaultError(errors.New("the callbacke function is not found"))
 }
 
 func (comm *CommonAPI) SetCallback(call func([]byte, *gin.Context) (interface{}, *APIError)) {

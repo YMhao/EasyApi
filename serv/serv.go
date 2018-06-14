@@ -144,7 +144,7 @@ func runAPICall(apiMap map[string]API, c *gin.Context, key string) {
 		body, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
 			handleError(c, &APIError{
-				Code:    unknown,
+				Code:    common.ERROR_TYPE_DEFAULT,
 				Message: err.Error(),
 			})
 			return
@@ -158,7 +158,7 @@ func runAPICall(apiMap map[string]API, c *gin.Context, key string) {
 		handleCall(c, response, apiErr)
 	} else {
 		handleError(c, &APIError{
-			Code:    unknown,
+			Code:    common.ERROR_TYPE_DEFAULT,
 			Message: "invalid content-type " + contentType,
 		})
 	}
@@ -174,31 +174,17 @@ func runAPIOpthionCall(apiMap map[string]API, c *gin.Context, key string) {
 }
 
 func handleNotFound(c *gin.Context) {
-	c.String(400, "")
+	c.String(500, "")
 }
 
 func handleCall(c *gin.Context, response interface{}, apiErr *APIError) {
 	c.Writer.Header().Set("content-type", "application/json")
-	c.JSON(200, &CallResponse{
-		HasError: (apiErr != nil),
-		Error:    apiErr,
-		Data:     response,
-	})
+	c.JSON(200, response)
 }
 
 func handleError(c *gin.Context, apiErr *APIError) {
 	c.Writer.Header().Set("content-type", "application/json")
-	c.JSON(200, &CallResponse{
-		HasError: true,
-		Error:    apiErr,
-	})
-}
-
-func handleResponse(c *gin.Context, response interface{}) {
-	c.Writer.Header().Set("content-type", "application/json")
-	c.JSON(200, &CallResponse{
-		Data: response,
-	})
+	c.JSON(403, apiErr)
 }
 
 func runOpthionCall(c *gin.Context) {

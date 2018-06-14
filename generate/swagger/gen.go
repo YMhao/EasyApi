@@ -28,6 +28,14 @@ func GenCode(conf *common.APIServConf, apiDocList []*common.ApiDoc) *Swagger {
 	swagger.SetPaths(paths)
 
 	definitions := GenDefinitions(apiDocList)
+	definitions[common.ERROR_OBJ_NAME] = spec.Schema{
+		SchemaProps: spec.SchemaProps{
+			Properties: map[string]spec.Schema{
+				"code":    *spec.StringProperty(),
+				"message": *spec.StringProperty(),
+			},
+		},
+	}
 	swagger.SetDefinitions(definitions)
 	return swagger
 }
@@ -194,37 +202,21 @@ func GetApiId(id string) string {
 	return strings.Replace(id, ".", "", -1)
 }
 
-func getStdRespSchema(apiDoc *common.ApiDoc) *spec.Schema {
-	objName := AvoidRepeatMap.GetTypeName(apiDoc.Response.PkgPath, apiDoc.Response.Name)
-	schema := &spec.Schema{
+func getStdErrorRespSchema(errorObjName string) *spec.Schema {
+	return &spec.Schema{
 		SchemaProps: spec.SchemaProps{
-			Properties: map[string]spec.Schema{
-				"hasError": spec.Schema{
-					SchemaProps: spec.SchemaProps{
-						Type: spec.StringOrArray{
-							"boolean",
-						},
-					},
-				},
-				"error": spec.Schema{
-					SchemaProps: spec.SchemaProps{
-						Type: spec.StringOrArray{
-							"object",
-						},
-						Properties: make(map[string]spec.Schema),
-					},
-				},
-				"data": spec.Schema{
-					SchemaProps: spec.SchemaProps{
-						Ref: spec.MustCreateRef("#/definitions/" + objName),
-					},
-				},
-			},
+			Ref: spec.MustCreateRef("#/definitions/" + errorObjName),
 		},
 	}
-	schema.SchemaProps.Properties["error"].SchemaProps.Properties["code"] = *spec.StringProperty()
-	schema.SchemaProps.Properties["error"].SchemaProps.Properties["message"] = *spec.StringProperty()
-	return schema
+}
+
+func getStdRespSchema(apiDoc *common.ApiDoc) *spec.Schema {
+	objName := AvoidRepeatMap.GetTypeName(apiDoc.Response.PkgPath, apiDoc.Response.Name)
+	return &spec.Schema{
+		SchemaProps: spec.SchemaProps{
+			Ref: spec.MustCreateRef("#/definitions/" + objName),
+		},
+	}
 }
 
 func GetStatusCodeResponses(apiDoc *common.ApiDoc) map[int]spec.Response {
@@ -234,6 +226,10 @@ func GetStatusCodeResponses(apiDoc *common.ApiDoc) map[int]spec.Response {
 			200: spec.Response{ResponseProps: spec.ResponseProps{
 				Description: apiDoc.Response.Description,
 				Schema:      getStdRespSchema(apiDoc),
+			}},
+			403: spec.Response{ResponseProps: spec.ResponseProps{
+				Description: "failed operation",
+				Schema:      getStdErrorRespSchema(common.ERROR_OBJ_NAME),
 			}},
 		}
 	case common.SwaggerAPITypeDownload:
@@ -248,6 +244,10 @@ func GetStatusCodeResponses(apiDoc *common.ApiDoc) map[int]spec.Response {
 					},
 				},
 			}},
+			403: spec.Response{ResponseProps: spec.ResponseProps{
+				Description: "failed operation",
+				Schema:      getStdErrorRespSchema(common.ERROR_OBJ_NAME),
+			}},
 		}
 	case common.SwaggerAPITypeUpload:
 		return map[int]spec.Response{
@@ -258,6 +258,10 @@ func GetStatusCodeResponses(apiDoc *common.ApiDoc) map[int]spec.Response {
 						Ref: spec.MustCreateRef("#/definitions/" + apiDoc.ApiId + "Resp"),
 					},
 				},
+			}},
+			403: spec.Response{ResponseProps: spec.ResponseProps{
+				Description: "failed operation",
+				Schema:      getStdErrorRespSchema(common.ERROR_OBJ_NAME),
 			}},
 		}
 	default:
